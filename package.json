@@ -1,0 +1,25 @@
+{
+  "name": "@soitissolutions/extensions-shared",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soitissolutions/extensions-shared.git"
+  },
+  "scripts": {
+    "check": "biome check && tsc -p jsconfig.json --noEmit",
+    "check:fix": "biome check --write",
+    "test": "npm run check && vitest run --config tests/vitest.config.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.13",
+    "@types/chrome": "0.2.x",
+    "typescript": "latest",
+    "vitest": "5.x",
+    "htmlparser2": "latest",
+    "css-select": "latest",
+    "domhandler": "latest",
+    "domutils": "latest"
+  }
+}
