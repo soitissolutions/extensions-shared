@@ -89,6 +89,22 @@ test('exports only the supplied stored settings with the product id, filename an
   expect(URL.revokeObjectURL).toHaveBeenCalledExactlyOnceWith('blob:backup')
 })
 
+test('successful import preserves non-blocking validation diagnostics', async () => {
+  const tolerant = createSettingsTransfer({
+    extensionId: 'example',
+    schemaVersion: 1,
+    schema: { feature: boolean() },
+    ignoreUnknown: true,
+  })
+  const page = load({ transfer: tolerant })
+  const result = await page.import(
+    tolerant.createSettingsExport({ feature: false, old: true }, '1.2.3'),
+  )
+  expect(result).toEqual({ success: true, issues: [{ code: 'unknownSettings', detail: 'old' }] })
+  expect(page.writeSettings).toHaveBeenCalledWith({ feature: false }, { replace: true })
+  expect(page.onImportResult).toHaveBeenLastCalledWith(result)
+})
+
 test.each([{}, { feature: false }])(
   'restores %j with replacement semantics and clears success messages later',
   async (settings) => {

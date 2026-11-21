@@ -98,7 +98,7 @@ export function validateSettings(input, schema) {
   const unknown = []
 
   for (const [key, value] of Object.entries(input)) {
-    const field = schema[key]
+    const field = Object.hasOwn(schema, key) ? schema[key] : null
     if (!field) {
       unknown.push(key)
       continue

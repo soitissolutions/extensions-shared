@@ -25,6 +25,10 @@ export type SettingsImportError =
 
 export type SettingsTransferOptions = {
   extensionId: string
+  /** Ignore unrecognised keys while retaining their diagnostics. Invalid known values still reject. */
+  ignoreUnknown?: boolean
+  /** Explicit historical schema-1 exports which predate extension identifiers. */
+  legacyExportVersions?: string[]
   /** Convert supported formats to the current schema; called only after checking extension identity. */
   migrate?: (input: SettingsExport) => SettingsExport
   schema: Record<string, FieldDescriptor>

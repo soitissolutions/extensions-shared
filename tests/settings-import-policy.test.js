@@ -7,6 +7,68 @@ const schema = { feature: boolean(), entries: arrayOf(string()) }
 const transfer = createSettingsTransfer({ extensionId: 'example', schemaVersion: 1, schema })
 const validate = (input) => transfer.validateSettingsJson(JSON.stringify(input))
 
+test('unknown keys can be skipped explicitly without relaxing known-field validation', () => {
+  const tolerant = createSettingsTransfer({
+    extensionId: 'example',
+    schemaVersion: 1,
+    schema,
+    ignoreUnknown: true,
+  })
+  const input = {
+    extensionId: 'example',
+    schemaVersion: 1,
+    settings: { feature: false, future: true },
+  }
+  expect(tolerant.validateSettingsJson(JSON.stringify(input))).toEqual({
+    settings: { feature: false },
+    issues: [{ code: 'unknownSettings', detail: 'future' }],
+  })
+  expect(
+    tolerant.validateSettingsJson(
+      JSON.stringify({ ...input, settings: { feature: 'no', future: true } }),
+    ).settings,
+  ).toBeNull()
+})
+
+test('legacy identity support is limited to explicitly listed schema-1 versions', () => {
+  const compatible = createSettingsTransfer({
+    extensionId: 'example',
+    schemaVersion: 1,
+    schema,
+    legacyExportVersions: ['1.2.3'],
+  })
+  const old = { schemaVersion: 1, version: '1.2.3', settings: { feature: false } }
+  expect(compatible.validateSettingsJson(JSON.stringify(old))).toEqual({
+    settings: { feature: false },
+    issues: [],
+  })
+  expect(old).not.toHaveProperty('extensionId')
+  for (const backup of [
+    { ...old, version: '1.2.4' },
+    { ...old, schemaVersion: 2 },
+    { ...old, extensionId: 'different' },
+    { ...old, extensionId: null },
+    { ...old, extensionId: '' },
+  ]) {
+    expect(compatible.validateSettingsExport(backup).error).toBe('settingsExtensionMismatch')
+  }
+})
+
+test('prototype property names are unknown settings rather than schema fields', () => {
+  const tolerant = createSettingsTransfer({
+    extensionId: 'example',
+    schemaVersion: 1,
+    schema,
+    ignoreUnknown: true,
+  })
+  const settings = JSON.parse('{"feature":true,"__proto__":{},"constructor":true,"toString":true}')
+  expect(tolerant.validateSettingsExport(tolerant.createSettingsExport(settings, '1'))).toEqual({
+    settings: { feature: true },
+    invalid: [],
+    unknown: ['__proto__', 'constructor', 'toString'],
+  })
+})
+
 test.each([undefined, null, 42, '', 'another-extension'])(
   'rejects a missing or different extension identifier %j even for empty settings',
   (extensionId) => {

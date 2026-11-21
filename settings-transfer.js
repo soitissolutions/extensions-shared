@@ -4,7 +4,14 @@ import { isObject, validateSettings } from './settings-schema.js'
  * Bind backups to an extension-owned schema and stable product identifier.
  * @param {import('./types').SettingsTransferOptions} options
  */
-export function createSettingsTransfer({ extensionId, schema, schemaVersion, migrate }) {
+export function createSettingsTransfer({
+  extensionId,
+  schema,
+  schemaVersion,
+  migrate,
+  ignoreUnknown = false,
+  legacyExportVersions = [],
+}) {
   if (typeof extensionId != 'string' || !extensionId.trim()) {
     throw new Error('extensionId must be a non-empty string')
   }
@@ -31,11 +38,20 @@ export function createSettingsTransfer({ extensionId, schema, schemaVersion, mig
     ) {
       return 'invalidSettingsSchemaVersion'
     }
-    if (input.extensionId !== extensionId) return 'settingsExtensionMismatch'
+    if (
+      input.extensionId !== extensionId &&
+      !(
+        !Object.hasOwn(input, 'extensionId') &&
+        input.schemaVersion === 1 &&
+        typeof input.version == 'string' &&
+        legacyExportVersions.includes(input.version)
+      )
+    )
+      return 'settingsExtensionMismatch'
   }
 
   /**
-   * Returns diagnostics; callers must reject the whole restore if any are present.
+   * Returns validation diagnostics, including unknown keys dropped from settings.
    * Migrations run only for this extension's current or older formats.
    * @param {unknown} input
    * @returns {import('./types').ValidateSettingsExportResult}
@@ -44,7 +60,7 @@ export function createSettingsTransfer({ extensionId, schema, schemaVersion, mig
     const rejected = { settings: {}, invalid: [], unknown: [] }
     const error = envelopeError(input)
     if (error) return { ...rejected, error }
-    let candidate = /** @type {import('./types').SettingsExport} */ (input)
+    let candidate = { .../** @type {import('./types').SettingsExport} */ (input), extensionId }
     if (migrate && candidate.schemaVersion <= schemaVersion) {
       try {
         candidate = migrate(structuredClone(candidate))
@@ -93,7 +109,10 @@ export function createSettingsTransfer({ extensionId, schema, schemaVersion, mig
     if (warning) issues.push({ code: 'unsupportedSettingsSchemaVersion' })
     if (invalid.length) issues.push({ code: 'invalidSettings', detail: invalid.join(', ') })
     if (unknown.length) issues.push({ code: 'unknownSettings', detail: unknown.join(', ') })
-    return { settings: issues.length ? null : settings, issues }
+    return {
+      settings: warning || invalid.length || (unknown.length && !ignoreUnknown) ? null : settings,
+      issues,
+    }
   }
 
   return { createSettingsExport, validateSettingsExport, validateSettingsJson }

@@ -96,7 +96,7 @@ export function createSettingsTransferController({
         else {
           // The shared writer waits for a synced PUT before replacing local state.
           await writeSettings(settings, { replace: true })
-          result = { success: true, issues: [] }
+          result = { success: true, issues }
         }
       } catch {
         result = { success: false, issues: [{ code: 'settingsImportFailed' }] }
