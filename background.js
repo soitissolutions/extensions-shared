@@ -1,0 +1,124 @@
+import { get, SERVER_ORIGIN, set } from './settings.js'
+import { initSettingsSync, startSync } from './settings-background.js'
+import { runSettingsMigrations, scheduleSettingsMigrations } from './settings-migrations.js'
+import { isObject } from './settings-schema.js'
+import { crossesVersionThreshold } from './version.js'
+
+//#region Constants
+const DISABLED_ICONS = {
+  16: 'icons/icon16-disabled.png',
+  32: 'icons/icon32-disabled.png',
+  48: 'icons/icon48-disabled.png',
+  64: 'icons/icon64-disabled.png',
+  96: 'icons/icon96-disabled.png',
+  128: 'icons/icon128-disabled.png',
+}
+const ENABLED_ICONS = {
+  16: 'icons/icon16.png',
+  32: 'icons/icon32.png',
+  48: 'icons/icon48.png',
+  64: 'icons/icon64.png',
+  96: 'icons/icon96.png',
+  128: 'icons/icon128.png',
+}
+//#endregion
+
+/**
+ * Register the shared background lifecycle before asynchronous startup work.
+ * Migration functions and notification release thresholds belong to the extension.
+ * @param {import('./types').BackgroundOptions} options
+ */
+export function initBackground({
+  productPath,
+  significantVersions = [],
+  migrations = [],
+  proEnabled = false,
+  apiBase = SERVER_ORIGIN,
+}) {
+  const IS_SAFARI = location.protocol.startsWith('safari-web-extension:')
+
+  //#region Functions
+  function updateToolbarIcon(enabled) {
+    const title = chrome.i18n.getMessage(enabled ? 'extensionName' : 'extensionNameDisabled')
+    if (chrome.runtime.getManifest().manifest_version == 3) {
+      chrome.action.setTitle({ title })
+      if (!IS_SAFARI) {
+        chrome.action.setIcon({ path: enabled ? ENABLED_ICONS : DISABLED_ICONS })
+      } else {
+        chrome.action.setBadgeText({ text: enabled ? '' : '⏻' })
+      }
+    } else {
+      chrome.browserAction.setTitle({ title })
+      chrome.browserAction.setIcon({ path: enabled ? ENABLED_ICONS : DISABLED_ICONS })
+    }
+  }
+  //#endregion
+
+  //#region Main
+  let startupTask = Promise.resolve()
+  let migrationsCompletedThisStartup = false
+
+  /** @param {chrome.runtime.InstalledDetails} [details] */
+  function main(details) {
+    const task = startupTask.then(async () => {
+      const currentVersion = chrome.runtime.getManifest().version
+      if (details?.reason == 'install') {
+        const { settings } = await get('settings')
+        if (!isObject(settings)) await set({ settings: {} })
+      } else if (details?.reason == 'update' && !migrationsCompletedThisStartup) {
+        await scheduleSettingsMigrations(details.previousVersion, currentVersion, migrations)
+      }
+      if (await runSettingsMigrations(currentVersion, migrations))
+        migrationsCompletedThisStartup = true
+      const { pendingStorageMigration } = await get('pendingStorageMigration')
+      if (pendingStorageMigration) return
+      if (proEnabled) await startSync()
+    })
+    startupTask = task.catch(() => {})
+    return task
+  }
+
+  initSettingsSync({ apiBase, proEnabled })
+  const startup = main().catch((error) => {
+    console.error('[background]', error)
+  })
+
+  chrome.storage.local.get({ enabled: true }, ({ enabled }) => {
+    updateToolbarIcon(enabled)
+  })
+
+  chrome.runtime.onInstalled.addListener((details) => {
+    const startup = main(details)
+    startup.catch((error) => console.error('[background]', error))
+    if (details.reason == 'install') {
+      chrome.tabs.create({
+        url: `https://soitis.dev/${productPath}/welcome`,
+      })
+    } else if (details.reason == 'update') {
+      const previous = details.previousVersion
+      const current = chrome.runtime.getManifest().version
+      const significantVersion = significantVersions.find((version) =>
+        crossesVersionThreshold(previous, current, version),
+      )
+      if (significantVersion) {
+        chrome.tabs.create({
+          url: `https://soitis.dev/${productPath}/updated?version=${significantVersion}`,
+          active: false,
+        })
+      }
+    }
+    return startup
+  })
+
+  chrome.runtime.onStartup.addListener(() => {
+    // Wake the background at browser startup without running main() twice
+    return startup
+  })
+
+  chrome.storage.local.onChanged.addListener((changes) => {
+    if (changes.enabled) {
+      updateToolbarIcon(changes.enabled.newValue)
+    }
+  })
+  //#endregion
+}

@@ -118,3 +118,14 @@ export type SettingsTransferControllerOptions = {
   readSettings?: () => Promise<Record<string, unknown>>
   writeSettings?: (settings: Record<string, unknown>, options: { replace: boolean }) => Promise<void>
 }
+
+export type SettingsMigrations = [string, () => Promise<void>][]
+
+export type BackgroundOptions = {
+  productPath: string
+  // First crossed threshold in this order determines the update page version
+  significantVersions?: string[]
+  migrations?: SettingsMigrations
+  proEnabled?: boolean
+  apiBase?: string
+}
