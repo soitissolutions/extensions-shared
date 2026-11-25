@@ -133,7 +133,7 @@ body.filteringFeatures
   .panel[data-tab="features"]
   .option.search-intermediate:has(> .option-row.feature-search-hidden)
   > .sub-options {
-  margin-left: 0;
+  margin-inline-start: 0;
 }
 /* #endregion */
 
@@ -142,13 +142,14 @@ body.filteringFeatures
   padding-bottom: 4px;
 }
 details {
-  margin-left: 12px;
+  margin-inline-start: 12px;
 }
 dl {
   display: grid;
   gap: 6px 16px;
   grid-template-columns: max-content minmax(0, 1fr);
-  margin: 4px 40px 0 0;
+  margin-block: 4px 0;
+  margin-inline: 0 40px;
   dt {
     color: var(--text-secondary);
   }
@@ -156,7 +157,7 @@ dl {
     margin: 0;
     min-width: 0;
     overflow-wrap: anywhere;
-    text-align: right;
+    text-align: end;
   }
 }
 
@@ -516,7 +517,8 @@ options-button.option-row.button {
   .group-label {
     font-weight: var(--group-label-weight);
     font-size: 16px;
-    padding: 0 24px 0 0;
+    padding-block: 0 0;
+    padding-inline: 0 24px;
   }
   .collapsible .group-label {
     cursor: pointer;
@@ -524,7 +526,7 @@ options-button.option-row.button {
   }
   .collapsible .group-disclosure {
     position: absolute;
-    right: 16px;
+    inset-inline-end: 16px;
   }
   .collapsed .group-disclosure {
     transform: rotate(180deg);
@@ -576,7 +578,7 @@ options-button.option-row.button {
     color: var(--text-secondary);
     font-size: var(--font-size-secondary);
     margin-bottom: 0;
-    margin-right: 40px;
+    margin-inline-end: 40px;
   }
   .options,
   .sub-options {
@@ -590,7 +592,8 @@ options-button.option-row.button {
     gap: var(--option-content-gap);
     padding-block: 0;
     > :is(.option-label, .option-row:where(:not(options-toggle))) {
-      padding: 0 12px 0 0;
+      padding-block: 0 0;
+      padding-inline: 0 12px;
     }
     > :is(.option-description, .option-message) {
       margin: 0;
@@ -610,7 +613,8 @@ options-button.option-row.button {
     align-items: start;
     position: relative;
     isolation: isolate;
-    padding: 0 var(--option-inline-end) 0 0;
+    padding-block: 0 0;
+    padding-inline: 0 var(--option-inline-end);
     line-height: 1.4;
     grid-template-areas: "control label" ". description";
     grid-template-columns: auto minmax(0, 1fr);
@@ -657,7 +661,8 @@ options-button.option-row.button {
     display: grid;
     gap: var(--option-content-gap);
     textarea {
-      margin: 0 12px 0 0;
+      margin-block: 0 0;
+      margin-inline: 0 12px;
     }
   }
   .select {
@@ -669,7 +674,8 @@ options-button.option-row.button {
     }
   }
   .field-error {
-    margin: 0 12px 0 0;
+    margin-block: 0 0;
+    margin-inline: 0 12px;
   }
   /* #endregion */
 
@@ -811,7 +817,8 @@ options-button.option-row.button {
       "textarea textarea"
       "info button";
     row-gap: var(--editor-content-gap);
-    padding: 0 var(--option-inline-end) 0 0;
+    padding-block: 0 0;
+    padding-inline: 0 var(--option-inline-end);
     column-gap: 8px;
     .editor-enable {
       grid-area: label;
@@ -1154,7 +1161,8 @@ options-button.option-row.button {
   /* #region Option groups */
   .group-label {
     font-weight: var(--group-label-weight);
-    padding: 0 24px var(--group-content-gap) 4px;
+    padding-block: 0 var(--group-content-gap);
+    padding-inline: 4px 24px;
   }
   .collapsible .group-label {
     cursor: pointer;
@@ -1162,7 +1170,7 @@ options-button.option-row.button {
   }
   .collapsible .group-disclosure {
     position: absolute;
-    right: 16px;
+    inset-inline-end: 16px;
   }
   .collapsed .group-disclosure {
     transform: rotate(180deg);
@@ -1208,7 +1216,7 @@ options-button.option-row.button {
     color: var(--text-secondary);
     font-size: var(--font-size-secondary);
     margin-bottom: 0;
-    margin-right: 40px;
+    margin-inline-end: 40px;
   }
   .options {
     margin-inline: 0;
@@ -1345,7 +1353,8 @@ options-button.option-row.button {
     }
   }
   .field-error {
-    margin: 0 12px 12px 0;
+    margin-block: 0 12px;
+    margin-inline: 0 12px;
   }
   .textarea:not(.custom-css-editor) {
     display: flex;
@@ -2065,7 +2074,8 @@ options-button.option-row.button {
   /* #region Option groups */
   .group-label {
     font-weight: var(--group-label-weight);
-    padding: 0 24px var(--group-content-gap) 4px;
+    padding-block: 0 var(--group-content-gap);
+    padding-inline: 4px 24px;
   }
   .collapsible .group-label {
     cursor: pointer;
@@ -2073,7 +2083,7 @@ options-button.option-row.button {
   }
   .collapsible .group-disclosure {
     position: absolute;
-    right: 16px;
+    inset-inline-end: 16px;
   }
   .collapsed .group-disclosure {
     transform: rotate(180deg);
@@ -2118,7 +2128,7 @@ options-button.option-row.button {
     color: var(--text-secondary);
     font-size: var(--font-size-secondary);
     margin-bottom: 0;
-    margin-right: 40px;
+    margin-inline-end: 40px;
   }
   .options {
     margin-inline: 0;
@@ -2126,7 +2136,8 @@ options-button.option-row.button {
   .option {
     padding-block: var(--option-padding-block);
     > :is(.option-label, .option-row:where(:not(options-toggle))) {
-      padding: 4px 12px 4px 0;
+      padding-block: 4px 4px;
+      padding-inline: 0 12px;
     }
   }
   .option > :is(.option-description, .option-message) {
@@ -2144,7 +2155,8 @@ options-button.option-row.button {
     align-items: start;
     position: relative;
     isolation: isolate;
-    padding: var(--option-padding-block) var(--option-inline-end) var(--option-padding-block) 0;
+    padding-block: var(--option-padding-block) var(--option-padding-block);
+    padding-inline: 0 var(--option-inline-end);
     line-height: 1.4;
     grid-template-areas:
       "label control"
@@ -2217,7 +2229,8 @@ options-button.option-row.button {
     display: flex;
     flex-direction: column;
     textarea {
-      margin: var(--option-content-gap) 12px 0 0;
+      margin-block: var(--option-content-gap) 0;
+      margin-inline: 0 12px;
     }
     > :is(.option-description, .option-message) {
       margin: var(--textarea-description-gap) 0 0;
@@ -2272,7 +2285,8 @@ options-button.option-row.button {
     padding-block-end: 0;
   }
   .field-error {
-    margin: 0 12px 12px 0;
+    margin-block: 0 12px;
+    margin-inline: 0 12px;
   }
   /* #endregion */
 
@@ -2964,8 +2978,8 @@ options-button.option-row.button {
     position: relative;
   }
   .collapsible .group-disclosure {
-    right: 16px;
-    margin-right: 6px;
+    inset-inline-end: 16px;
+    margin-inline-end: 6px;
     position: static;
   }
   .group {
@@ -2986,7 +3000,7 @@ options-button.option-row.button {
     content: ":";
   }
   .group > .options {
-    margin-left: 20px;
+    margin-inline-start: 20px;
   }
   .collapsed > .options {
     display: none;
@@ -3017,7 +3031,7 @@ options-button.option-row.button {
     color: var(--text-secondary);
     font-size: var(--font-size-secondary);
     margin-bottom: 0;
-    margin-right: 12px;
+    margin-inline-end: 12px;
   }
   .options,
   .sub-options {
@@ -3031,7 +3045,8 @@ options-button.option-row.button {
     gap: var(--option-content-gap);
     padding-block: 0;
     > :is(.option-label, .option-row:where(:not(options-toggle))) {
-      padding: 0 12px 0 0;
+      padding-block: 0 0;
+      padding-inline: 0 12px;
     }
     > :is(.option-description, .option-message) {
       margin-block: 0;
@@ -3051,7 +3066,8 @@ options-button.option-row.button {
     align-items: start;
     position: relative;
     isolation: isolate;
-    padding: 0 var(--option-inline-end) 0 0;
+    padding-block: 0 0;
+    padding-inline: 0 var(--option-inline-end);
     line-height: 1.4;
     grid-template-areas: "control label" ". description";
     grid-template-columns: auto minmax(0, 1fr);
@@ -3099,10 +3115,11 @@ options-button.option-row.button {
     display: grid;
     gap: var(--option-content-gap);
     textarea {
-      margin: 0 12px 0 0;
+      margin-block: 0 0;
+      margin-inline: 0 12px;
     }
     > :is(.option-description, .option-message) {
-      margin-right: 12px;
+      margin-inline-end: 12px;
     }
   }
   .select .option-row {
@@ -3117,7 +3134,8 @@ options-button.option-row.button {
     gap: 8px;
   }
   .field-error {
-    margin: 0 12px 0 0;
+    margin-block: 0 0;
+    margin-inline: 0 12px;
   }
   /* #endregion */
 
@@ -3137,7 +3155,8 @@ options-button.option-row.button {
       "textarea textarea"
       "info button";
     row-gap: var(--editor-content-gap);
-    padding: 0 var(--option-inline-end) 0 0;
+    padding-block: 0 0;
+    padding-inline: 0 var(--option-inline-end);
     column-gap: 8px;
     .editor-enable {
       grid-area: label;
@@ -3293,6 +3312,9 @@ options-button.option-row.button {
       inset: 2px;
       position: absolute;
       transform: translateX(calc(100% * var(--selected-tab-index)));
+      [dir="rtl"] & {
+        transform: translateX(calc(-100% * var(--selected-tab-index)));
+      }
       width: calc((100% - 4px) / var(--tab-count));
       z-index: 1;
     }
@@ -3501,7 +3523,7 @@ options-button.option-row.button {
   }
   .collapsible .group-disclosure {
     position: absolute;
-    right: 16px;
+    inset-inline-end: 16px;
     display: none;
   }
   .collapsed .group-disclosure {
@@ -3679,7 +3701,7 @@ options-button.option-row.button {
     border-radius: 14px;
     vertical-align: text-bottom;
     transition: background-color 0.2s ease-in-out;
-    margin-left: 8px;
+    margin-inline-start: 8px;
   }
   .checkbox .toggle::after {
     content: "";
@@ -3854,6 +3876,9 @@ options-button.option-row.button {
       min-width: 56px;
       position: absolute;
       transform: translateX(-50%);
+      [dir="rtl"] & {
+        transform: translateX(50%);
+      }
       width: 100%;
     }
   }
