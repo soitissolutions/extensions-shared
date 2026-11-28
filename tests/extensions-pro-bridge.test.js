@@ -124,3 +124,34 @@ describe('Extensions Pro bridge', () => {
     expect(browser.postMessage).not.toHaveBeenCalled()
   })
 })
+
+test.each(['EXT_LINK', 'EXT_UNLINK'])(
+  'acknowledges %s failures without reporting success',
+  async (type) => {
+    const browser = await loadBridge()
+    browser.chrome.runtime.sendMessage.mockImplementationOnce((_message, callback) =>
+      callback({ error: 'Failed' }),
+    )
+    await browser.dispatch({ type, extensionId: EXTENSION_ID, runtimeId: 'test-extension' })
+    expect(browser.postMessage).toHaveBeenLastCalledWith(
+      {
+        type: `${type}_ACK`,
+        extensionId: EXTENSION_ID,
+        runtimeId: 'test-extension',
+        error: 'Could not update the extension link. Please try again.',
+      },
+      ORIGIN,
+    )
+  },
+)
+
+test('reports a missing background acknowledgement as a link failure', async () => {
+  const browser = await loadBridge()
+  browser.chrome.runtime.sendMessage.mockImplementationOnce((_message, callback) => callback())
+  await browser.dispatch({
+    type: 'EXT_LINK',
+    extensionId: EXTENSION_ID,
+    runtimeId: 'test-extension',
+  })
+  expect(browser.postMessage.mock.lastCall[0].error).toBeTruthy()
+})

@@ -73,7 +73,10 @@ async function isCurrentSync(headers, epoch) {
  * @returns {true}
  */
 function keepMessageChannelOpen(task, sendResponse) {
-  runBackgroundTask(task).then(sendResponse)
+  task.then(sendResponse, (error) => {
+    console.error('[settings-background]', error)
+    sendResponse({ error: 'Extension operation failed' })
+  })
   return true
 }
 
@@ -543,6 +546,7 @@ async function runSettingsSync(reason) {
 }
 
 async function refreshAccount() {
+  const epoch = syncEpoch
   const headers = await getHeaders()
   if (!headers) {
     await trace('account.refresh.skipped', { reason: 'no-linked-account' })
@@ -572,15 +576,25 @@ async function refreshAccount() {
   })
 
   if (res.status == 401) {
+    if (!(await isCurrentAccount())) return
     await set({ syncError: 'auth' })
+    if (!(await isCurrentAccount())) return
     await handleAccountUnlinked()
     return
   }
   if (!res.ok) return
 
   const { subscription } = await res.json()
-  await set({ subscription })
-  await trace('account.refresh.completed', { hasSubscription: subscription != null })
+  await withSettingsWrite(async () => {
+    if (!(await isCurrentAccount())) return
+    await set({ subscription })
+    await trace('account.refresh.completed', { hasSubscription: subscription != null })
+  })
+
+  async function isCurrentAccount() {
+    const { token } = await get('token')
+    return epoch == syncEpoch && headers.Authorization == `Bearer ${token}`
+  }
 }
 
 function resetAccountRefreshTimer() {

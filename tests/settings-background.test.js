@@ -432,3 +432,40 @@ describe('one-shot synced imports', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
+
+test.each([200, 401])(
+  'ignores an old account refresh (%s) after unlinking or relinking',
+  async (status) => {
+    await loadSync({ storage: { token: 'old-token', syncSettings: false } })
+    let resolveOld
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveOld = resolve
+        }),
+    )
+    const refreshing = startSync()
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    await browser.sendMessage({ type: ACCOUNT_UNLINKED_MESSAGE })
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ subscription: { active: true, type: 'lifetime' } }),
+    )
+    await browser.sendMessage({
+      type: ACCOUNT_LINKED_MESSAGE,
+      email: 'new@example.com',
+      token: 'new-token',
+    })
+    resolveOld(jsonResponse({ subscription: { active: false } }, status))
+    await refreshing
+    expect(browser.storage.token).toBe('new-token')
+    expect(browser.storage.accountEmail).toBe('new@example.com')
+    expect(browser.storage.subscription).toEqual({ active: true, type: 'lifetime' })
+  },
+)
+
+test('failed account messages return an error response', async () => {
+  await loadSync()
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  const response = await browser.sendMessage({ type: ACCOUNT_LINKED_MESSAGE, token: '' })
+  expect(response).toEqual({ error: 'Extension operation failed' })
+})
